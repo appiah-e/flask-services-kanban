@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import mysql.connector
 from dotenv import load_dotenv
@@ -22,6 +22,9 @@ def get_connection():
         port=int(os.getenv('DB_PORT'))
     )
 
+@app.route('/index')
+def Affiche_html():
+    return render_template('index.html')
 
 @app.route('/upload/csv', methods=['POST'])
 def upload_csv():
