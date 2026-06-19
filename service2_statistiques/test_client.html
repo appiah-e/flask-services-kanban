@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Flask</title>
+</head>
+
+<body>
+
+<h2>Test de l'API /stats/describe</h2>
+
+<!-- Bouton qui lance le test -->
+<button onclick="testAPI()">Tester l'API</button>
+
+<!-- Zone où on affiche le résultat -->
+<pre id="result">Résultat ici...</pre>
+
+<script>
+function testAPI() {
+
+    // On envoie une requête POST à ton API Flask
+    fetch("http://127.0.0.1:5002/stats/describe", {
+        method: "POST", // méthode POST obligatoire
+        headers: {
+            "Content-Type": "application/json" // on envoie du JSON
+        },
+        body: JSON.stringify({
+            data: [1, 2, 3, 4, 5] // données envoyées à l'API
+        })
+    })
+
+    // On récupère la réponse du serveur
+    .then(response => response.json())
+
+    // On affiche le résultat dans la page
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    // Si erreur, on l'affiche
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur : " + error;
+    });
+
+}
+</script>
+
+</body>
+</html>

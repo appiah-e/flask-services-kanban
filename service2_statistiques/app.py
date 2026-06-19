@@ -1,32 +1,38 @@
 from flask import Flask, request, jsonify
 import numpy as np
-from scipy import stats
+from flask_cors import CORS
 
+# Création de l'application Flask
 app = Flask(__name__)
 
+# Activation CORS (autorise le HTML à appeler l'API)
+CORS(app)
+
+
 def validate_data(data, key='data'):
-    """Valide et retourne une liste de nombres."""
-    if key not in data:
-        raise ValueError(f"Clé '{key}' manquante dans la requête")
+    """Valide et transforme les données en tableau numpy"""
+
+    if not data or key not in data:
+        raise ValueError(f"Clé '{key}' manquante")
 
     values = data[key]
 
     if not isinstance(values, list) or len(values) < 2:
-        raise ValueError("'data' doit être une liste d'au moins 2 valeurs")
+        raise ValueError("La liste doit contenir au moins 2 valeurs")
 
     return np.array(values, dtype=float)
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5002)
-
-@app.route('/stats/describe', methods=['POST'])
+@app.route('/stats/describe', methods=['GET', 'POST'])
 def describe():
+
+    # Récupération JSON envoyé par le client
     data = request.get_json()
 
     try:
         values = validate_data(data)
 
+        # Calcul des statistiques
         result = {
             'n': int(len(values)),
             'moyenne': round(float(np.mean(values)), 4),
@@ -40,7 +46,15 @@ def describe():
             'etendue': round(float(np.ptp(values)), 4),
         }
 
-        return jsonify({'operation': 'description', 'resultat': result})
+        return jsonify({
+            'operation': 'description',
+            'resultat': result
+        })
 
     except (ValueError, TypeError) as e:
         return jsonify({'erreur': str(e)}), 400
+
+
+# Lancement du serveur
+if __name__ == '__main__':
+    app.run(debug=True, port=5002)
