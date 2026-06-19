@@ -1,9 +1,6 @@
 import pytest
 from app import app
 
-# --------------------
-# CLIENT FLASK
-# --------------------
 # Je crée un client de test Flask pour simuler les requêtes HTTP sans lancer le serveur
 @pytest.fixture
 def client():
@@ -12,27 +9,19 @@ def client():
         yield client
 
 
-# --------------------
-# 1. TEST HOME
-# --------------------
+
 # Je vérifie que la route "/" fonctionne correctement et renvoie un code 200
 def test_home(client):
     response = client.get("/")
     assert response.status_code == 200
 
 
-# --------------------
-# 2. TEST ERREUR DESCRIBE
-# --------------------
+
 # Je vérifie que si aucun paramètre "serie" n'est fourni, l'API renvoie une erreur 400
 def test_describe_missing_param(client):
     response = client.get("/db/stats/describe")
     assert response.status_code == 400
 
-
-# --------------------
-# 3. TEST CORRELATION
-# --------------------
 # Je vérifie que la route de corrélation fonctionne même si les données sont valides ou provoquent une erreur serveur
 def test_correlation(client):
     response = client.get("/db/stats/correlation?serie_x=a&serie_y=b")

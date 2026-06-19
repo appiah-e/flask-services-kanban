@@ -5,9 +5,7 @@ from db import fetch_series
 
 app = Flask(__name__)
 
-# -------------------------
-# ROUTE PRINCIPALE
-# -------------------------
+
 # Je crée une route de test pour vérifier que le service fonctionne
 @app.route('/')
 def home():
@@ -17,9 +15,7 @@ def home():
     }
 
 
-# -------------------------
-# ROUTE DESCRIBE
-# -------------------------
+
 # Je récupère une série dans la base de données et je calcule des statistiques descriptives
 # (moyenne, médiane, écart-type, min, max)
 @app.route('/db/stats/describe', methods=['GET'])
@@ -69,9 +65,7 @@ def db_describe():
         }), 500
 
 
-# -------------------------
-# ROUTE CORRELATION
-# -------------------------
+
 # Je calcule la corrélation entre deux séries de données
 @app.route('/db/stats/correlation', methods=['GET'])
 def db_correlation():
@@ -116,9 +110,7 @@ def db_correlation():
         }), 500
 
 
-# -------------------------
-# LANCEMENT DU SERVEUR
-# -------------------------
+
 # Je démarre l'application Flask sur le port 5003
 if __name__ == '__main__':
     app.run(debug=True, port=5003)
