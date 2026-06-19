@@ -5,6 +5,13 @@ from db import fetch_series
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return {
+        "service": "Service 3 MySQL",
+        "status": "OK"
+    }
+
 @app.route('/db/stats/describe', methods=['GET'])
 def db_describe():
 
