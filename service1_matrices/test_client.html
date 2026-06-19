@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Web - Service 1</title>
+</head>
+<body>
+
+    <h1>Test du Service 1 (Matrices)</h1>
+
+    <div class="boutons">
+        <button onclick="envoyerRequete('/add')">Test Addition</button>
+        <button onclick="envoyerRequete('/multiply')">Test Multiplication</button>
+        <button onclick="envoyerRequete('/transpose')">Test Transposée</button>
+        <button onclick="envoyerRequete('/determinant')">Test Déterminant</button>
+        <button onclick="envoyerRequete('/inverse')">Test Inverse</button>
+    </div>
+
+    <h2>Résultat :</h2>
+    <div id="ecran-resultat">Cliquez sur un bouton pour lancer un test...</div>
+
+    <script>
+        // L'adresse de base du serveur dorsal (Back-End) Flask qui écoute sur le port 5001
+        const BASE_URL = 'http://localhost:5001/matrices';
+
+        // Nos matrices de test par défaut
+        const donneesTest = {
+            "A": [[1, 2], [3, 4]],
+            "B": [[5, 6], [7, 8]]
+        };
+
+        // Fonction asynchrone qui gère la communication HTTP (le client web)
+        async function envoyerRequete(route) {
+            const ecran = document.getElementById('ecran-resultat');
+            // Message d'attente pendant l'échange réseau
+            ecran.textContent = "⏳ Chargement en cours...";
+
+            try {
+                // Equivalent de requests.post() en JavaScript
+                const reponse = await fetch(BASE_URL + route, {
+                    method: 'POST',
+                    // Indique au serveur Flask qu'on lui envoie du contenu au format JSON
+                    headers: { 'Content-Type': 'application/json' },
+                    // Transformation de l'objet JS "donneesTest" en chaîne de caractères JSON
+                    body: JSON.stringify(donneesTest)
+                });
+
+                // Attente et conversion de la réponse du serveur en objet JavaScript manipulable
+                const data = await reponse.json();
+
+                // Affichage du résultat
+                // Si la requête subit un refus lié à la sécurité CORS, le statut HTTP permettra de l'identifier.
+                ecran.innerHTML = `✅ Statut HTTP : ${reponse.status}<br><br>📦 Réponse du serveur :<br><pre>${JSON.stringify(data, null, 4)}</pre>`;
+            } catch (erreur) {
+                // Bloc exécuté en cas de problème réseau (ex: le serveur Flask n'est pas allumé)
+                ecran.textContent = `❌ Erreur de connexion : ${erreur.message}\n\nLe serveur Flask est-il bien allumé ?`;
+            }
+        }
+    </script>
+</body>
+</html>
