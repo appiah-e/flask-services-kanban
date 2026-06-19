@@ -31,19 +31,12 @@ def describe():
             'operation': 'description',
             'resultat': {
                 'n': f"{len(values)} → nombre de valeurs",
-
                 'moyenne': f"{round(float(np.mean(values)), 4)} → moyenne des données",
-
                 'mediane': f"{round(float(np.median(values)), 4)} → valeur centrale",
-
                 'ecart_type': f"{round(float(np.std(values, ddof=1)), 4)} → dispersion des données",
-
                 'variance': f"{round(float(np.var(values, ddof=1)), 4)} → variation des données",
-
                 'minimum': f"{round(float(np.min(values)), 4)} → plus petite valeur",
-
                 'maximum': f"{round(float(np.max(values)), 4)} → plus grande valeur",
-
                 'etendue': f"{round(float(np.ptp(values)), 4)} → max - min"
             }
         })
@@ -75,13 +68,9 @@ def correlation():
         return jsonify({
             'operation': 'correlation_pearson',
             'resultat': {
-
                 'r': f"{round(r, 4)} → force du lien entre X et Y (-1 à 1)",
-
                 'p_value': f"{round(p_value, 6)} → si < 0.05 résultat fiable",
-
                 'interpretation': f"{interpretation} → force de la relation",
-
                 'significatif': f"{bool(p_value < 0.05)} → vrai si pas dû au hasard"
             }
         })
@@ -107,9 +96,7 @@ def test_normalite():
             'operation': 'test_normalite_shapiro_wilk',
             'resultat': {
                 'statistique': f"{round(float(stat), 6)} → résultat du test",
-
                 'p_value': f"{round(float(p_value), 6)} → si < 0.05 non normal",
-
                 'est_normale': f"{bool(p_value > 0.05)} → True = données normales"
             }
         })
@@ -133,9 +120,7 @@ def test_student():
             'operation': 'test_t_student',
             'resultat': {
                 't_statistique': f"{round(float(t_stat), 4)} → comparaison des moyennes",
-
                 'p_value': f"{round(float(p_value), 6)} → si < 0.05 différence réelle",
-
                 'difference_significative': f"{bool(p_value < 0.05)} → True si groupes différents"
             }
         })
@@ -144,5 +129,6 @@ def test_student():
         return jsonify({'erreur': str(e)}), 400
 
 
+# ===================== LANCEMENT =====================
 if __name__ == '__main__':
     app.run(debug=True, port=5002)
