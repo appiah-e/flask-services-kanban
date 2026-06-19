@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Flask</title>
+</head>
+
+<body>
+
+<h2>Test API Flask</h2>
+
+<!-- ===================== TEST DESCRIBE ===================== -->
+<button onclick="testDescribe()">Tester describe</button>
+
+<!-- ===================== TEST CORRELATION ===================== -->
+<button onclick="testCorrelation()">Tester correlation</button>
+
+<!-- ===================== TEST NORMALITE ===================== -->
+<button onclick="testNormalite()">Tester normalité</button>
+
+<!-- Zone d'affichage des résultats -->
+<pre id="result">Résultat ici...</pre>
+
+<script>
+
+// ===================== DESCRIBE =====================
+function testDescribe() {
+
+    fetch("http://127.0.0.1:5002/stats/describe", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            data: [1, 2, 3, 4, 5]
+        })
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur describe : " + error;
+    });
+}
+
+
+// ===================== CORRELATION =====================
+function testCorrelation() {
+
+    fetch("http://127.0.0.1:5002/stats/correlation", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            x: [1, 2, 3, 4, 5],
+            y: [2, 4, 6, 8, 10]
+        })
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur correlation : " + error;
+    });
+}
+
+
+// ===================== NORMALITE =====================
+function testNormalite() {
+
+    fetch("http://127.0.0.1:5002/stats/test_normalite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        })
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur normalité : " + error;
+    });
+}
+
+</script>
+
+</body>
+</html>
