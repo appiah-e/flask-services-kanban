@@ -38,8 +38,20 @@ def tester_transpose():
     except Exception as e:
         print(f"Erreur de connexion : {e}\n")
 
+def tester_determinant():
+    print("--- 4. Test POST /matrices/determinant ---")
+    url = f"{BASE_URL}/determinant"
+    donnees = {"A": [[1, 2], [3, 4]]}
+    try:
+        reponse = requests.post(url, json=donnees)
+        print(f"Statut HTTP : {reponse.status_code}")
+        print(f"Résultat : {reponse.json()}\n")
+    except Exception as e:
+        print(f"Erreur de connexion : {e}\n")
+
 if __name__ == '__main__':
     print("DÉBUT DES TESTS CLIENTS Python\n")
     tester_addition()
     tester_multiplication()
     tester_transpose()
+    tester_determinant()
