@@ -9,9 +9,6 @@ def parse_matrix(data, key):
     except (KeyError, ValueError) as e:
         raise ValueError(f"Matrice '{key}' invalide : {e}")
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
-
 @app.route('/matrices/add', methods=['POST'])
 def add_matrices():
     data = request.get_json()
@@ -79,3 +76,6 @@ def inverse_matrix():
         return jsonify({'operation': 'inverse', 'resultat': result})
     except (ValueError, TypeError) as e:
         return jsonify({'erreur': str(e)}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
