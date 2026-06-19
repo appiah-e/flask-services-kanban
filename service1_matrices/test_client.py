@@ -27,7 +27,19 @@ def tester_multiplication():
     except Exception as e:
         print(f"Erreur de connexion : {e}\n")
 
+def tester_transpose():
+    print("--- 3. Test POST /matrices/transpose ---")
+    url = f"{BASE_URL}/transpose"
+    donnees = {"A": [[1, 2, 3], [4, 5, 6]]}
+    try:
+        reponse = requests.post(url, json=donnees)
+        print(f"Statut HTTP : {reponse.status_code}")
+        print(f"Résultat : {reponse.json()}\n")
+    except Exception as e:
+        print(f"Erreur de connexion : {e}\n")
+
 if __name__ == '__main__':
     print("DÉBUT DES TESTS CLIENTS Python\n")
     tester_addition()
     tester_multiplication()
+    tester_transpose()
