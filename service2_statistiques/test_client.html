@@ -7,44 +7,71 @@
 
 <body>
 
-<h2>Test de l'API /stats/describe</h2>
+<h2>Test de l'API Flask</h2>
 
-<!-- Bouton qui lance le test -->
-<button onclick="testAPI()">Tester l'API</button>
+<!-- ===================== TEST /describe ===================== -->
+<button onclick="testDescribe()">Tester describe</button>
 
-<!-- Zone où on affiche le résultat -->
+<!-- ===================== TEST /correlation ===================== -->
+<button onclick="testCorrelation()">Tester correlation</button>
+
 <pre id="result">Résultat ici...</pre>
 
 <script>
-function testAPI() {
 
-    // On envoie une requête POST à ton API Flask
+function testDescribe() {
+
+    // Test de la route /stats/describe
     fetch("http://127.0.0.1:5002/stats/describe", {
-        method: "POST", // méthode POST obligatoire
+        method: "POST",
         headers: {
-            "Content-Type": "application/json" // on envoie du JSON
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            data: [1, 2, 3, 4, 5] // données envoyées à l'API
+            data: [1, 2, 3, 4, 5]
         })
     })
 
-    // On récupère la réponse du serveur
     .then(response => response.json())
-
-    // On affiche le résultat dans la page
     .then(data => {
         document.getElementById("result").innerText =
             JSON.stringify(data, null, 2);
     })
 
-    // Si erreur, on l'affiche
     .catch(error => {
         document.getElementById("result").innerText =
-            "Erreur : " + error;
+            "Erreur describe : " + error;
     });
-
 }
+
+
+// ===================== TEST CORRELATION =====================
+function testCorrelation() {
+
+    // Test de la route /stats/correlation
+    fetch("http://127.0.0.1:5002/stats/correlation", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            x: [1, 2, 3, 4, 5],
+            y: [2, 4, 6, 8, 10]
+        })
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur correlation : " + error;
+    });
+}
+
 </script>
 
 </body>
