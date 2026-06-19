@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Service 4 — CSV → MySQL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #2563EB;
+      --blue-lt: #EFF6FF;
+      --blue-dk: #1D4ED8;
+      --green:   #16A34A;
+      --green-lt:#F0FDF4;
+      --red:     #DC2626;
+      --red-lt:  #FEF2F2;
+      --text:    #111827;
+      --muted:   #6B7280;
+      --border:  #E5E7EB;
+      --surface: #F7F8FA;
+      --white:   #FFFFFF;
+      --radius:  10px;
+      --shadow:  0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.05);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 600;
+      font-size: .95rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo-badge {
+      background: var(--blue);
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: .04em;
+    }
+    .header-sub {
+      color: var(--muted);
+      font-size: .82rem;
+      border-left: 1px solid var(--border);
+      padding-left: 1rem;
+      margin-left: .25rem;
+    }
+    .api-url {
+      margin-left: auto;
+      font-family: 'DM Mono', monospace;
+      font-size: .75rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* ── Main layout ── */
+    main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .card-header {
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .card-title {
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .card-icon {
+      width: 28px; height: 28px;
+      background: var(--blue-lt);
+      border-radius: 6px;
+      display: grid; place-items: center;
+      color: var(--blue);
+      flex-shrink: 0;
+    }
+    .card-body { padding: 1.4rem; }
+
+    /* ── Drop zone ── */
+    #dropzone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 2.2rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    #dropzone.drag-over {
+      border-color: var(--blue);
+      background: var(--blue-lt);
+    }
+    #dropzone.has-file {
+      border-color: var(--blue);
+      background: var(--blue-lt);
+    }
+    #dropzone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon {
+      width: 44px; height: 44px;
+      margin: 0 auto .75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: grid; place-items: center;
+      color: var(--muted);
+    }
+    .drop-title { font-weight: 600; font-size: .88rem; margin-bottom: .3rem; }
+    .drop-sub   { font-size: .78rem; color: var(--muted); }
+
+    /* ── Preview ── */
+    #preview-box {
+      display: none;
+      margin-top: 1rem;
+    }
+    #preview-box.visible { display: block; }
+    .preview-label {
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .4rem;
+    }
+    .preview-table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .preview-table {
+      width: 100%;
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      border-collapse: collapse;
+    }
+    .preview-table th {
+      background: var(--surface);
+      padding: 5px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-weight: 500;
+      color: var(--muted);
+      position: sticky; top: 0;
+    }
+    .preview-table td {
+      padding: 4px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .preview-more {
+      font-size: .72rem;
+      color: var(--muted);
+      text-align: center;
+      padding: .3rem;
+      font-style: italic;
+    }
+
+    /* ── Btn ── */
+    #btn-upload {
+      margin-top: 1rem;
+      width: 100%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: .7rem 1rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: .88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      transition: background .15s, opacity .15s;
+    }
+    #btn-upload:hover  { background: var(--blue-dk); }
+    #btn-upload:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* spinner */
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: none;
+    }
+    #btn-upload.loading .spinner { display: block; }
+    #btn-upload.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ── */
+    #toast {
+      margin-top: 1rem;
+      border-radius: 7px;
+      padding: .8rem 1rem;
+      font-size: .83rem;
+      display: none;
+      gap: .5rem;
+      align-items: flex-start;
+    }
+    #toast.visible { display: flex; }
+    #toast.success { background: var(--green-lt); color: var(--green); border: 1px solid #bbf7d0; }
+    #toast.error   { background: var(--red-lt);   color: var(--red);   border: 1px solid #fecaca; }
+    #toast svg     { flex-shrink: 0; margin-top: 1px; }
+    .toast-body    { display: flex; flex-direction: column; gap: .15rem; }
+    .toast-title   { font-weight: 600; }
+    .toast-detail  { font-size: .78rem; opacity: .85; }
+
+    /* ── Stats pills ── */
+    .stats-row {
+      display: flex;
+      gap: .5rem;
+      margin-top: .8rem;
+      flex-wrap: wrap;
+    }
+    .stat-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: .75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 3px 10px;
+      color: var(--text);
+      display: none;
+    }
+    .stat-pill.visible { display: inline-block; }
+
+    /* ── Right panel ── */
+    .section-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .5rem;
+      margin-left: auto;
+    }
+    #btn-refresh {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: .78rem;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .3rem;
+      transition: background .15s, color .15s;
+    }
+    #btn-refresh:hover { background: var(--surface); color: var(--text); }
+
+    .series-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    .series-empty svg { margin-bottom: .75rem; opacity: .35; }
+
+    /* ── Series table ── */
+    .series-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+    }
+    .series-table th {
+      background: var(--surface);
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: .6rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .series-table td {
+      padding: .75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .series-table tr:last-child td { border-bottom: none; }
+    .series-table tr:hover td { background: var(--surface); }
+    .serie-name {
+      font-weight: 600;
+      font-size: .85rem;
+    }
+    .serie-cat {
+      display: inline-block;
+      font-size: .72rem;
+      color: var(--blue);
+      background: var(--blue-lt);
+      border-radius: 99px;
+      padding: 2px 8px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .n-points {
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .date-range {
+      font-family: 'DM Mono', monospace;
+      font-size: .76rem;
+      color: var(--muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .75rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 780px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#">
+    <span class="logo-badge">S4</span>
+    CSV → MySQL
+  </a>
+  <span class="header-sub">Service d'ingestion de données</span>
+  <span class="api-url">:5004</span>
+</header>
+
+<main>
+
+  <!-- ── Panneau Upload ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <span class="card-title">Importer un fichier CSV</span>
+    </div>
+    <div class="card-body">
+
+      <div id="dropzone">
+        <input type="file" id="file-input" accept=".csv" />
+        <div class="drop-icon">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <p class="drop-title">Glisser-déposer ou cliquer</p>
+        <p class="drop-sub">Fichier .csv uniquement · max 5 Mo</p>
+      </div>
+
+      <!-- Aperçu CSV -->
+      <div id="preview-box">
+        <p class="preview-label">Aperçu</p>
+        <div class="preview-table-wrap">
+          <table class="preview-table">
+            <thead id="preview-head"></thead>
+            <tbody id="preview-body"></tbody>
+          </table>
+        </div>
+        <p id="preview-more" class="preview-more"></p>
+      </div>
+
+      <button id="btn-upload" disabled>
+        <div class="spinner"></div>
+        <span class="btn-text">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Envoyer vers MySQL
+        </span>
+      </button>
+
+      <!-- Toast résultat -->
+      <div id="toast">
+        <svg id="toast-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"></svg>
+        <div class="toast-body">
+          <span class="toast-title" id="toast-title"></span>
+          <span class="toast-detail" id="toast-detail"></span>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <span class="stat-pill" id="pill-insert"></span>
+        <span class="stat-pill" id="pill-ignore"></span>
+      </div>
+
+      <!-- Colonnes attendues -->
+      <div style="margin-top:1.4rem; padding-top:1.2rem; border-top:1px solid var(--border);">
+        <p class="preview-label" style="margin-bottom:.6rem;">Colonnes attendues</p>
+        <div style="display:flex; flex-wrap:wrap; gap:.4rem;">
+          <span style="font-family:'DM Mono',monospace;font-size:.73rem;background:#FEF9C3;border:1px solid #FDE68A;color:#92400E;border-radius:4px;padding:2px 8px;">nom_serie *</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.73rem;background:#FEF9C3;border:1px solid #FDE68A;color:#92400E;border-radius:4px;padding:2px 8px;">valeur *</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.73rem;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;">categorie</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.73rem;background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;">date_mesure</span>
+        </div>
+        <p style="margin-top:.5rem;font-size:.73rem;color:var(--muted);">* obligatoires</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Panneau Séries ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <span class="card-title">Séries chargées</span>
+      <div class="section-actions">
+        <span id="series-count" style="font-family:'DM Mono',monospace;font-size:.78rem;color:var(--muted);"></span>
+        <button id="btn-refresh">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Actualiser
+        </button>
+      </div>
+    </div>
+
+    <div id="series-container">
+      <div class="series-empty" id="series-empty">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <p>Aucune série pour l'instant.</p>
+        <p style="margin-top:.3rem;font-size:.78rem;">Importez un CSV pour commencer.</p>
+      </div>
+      <table class="series-table" id="series-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Série</th>
+            <th>Points</th>
+            <th>Plage de dates</th>
+          </tr>
+        </thead>
+        <tbody id="series-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Service 4 · Flask + MySQL · <code style="font-family:'DM Mono',monospace;">POST /upload/csv</code> · <code style="font-family:'DM Mono',monospace;">GET /upload/series</code>
+</footer>
+
+<script>
+  const API = 'http://127.0.0.1:5004';
+
+  // ── Éléments ──────────────────────────────────────────────────────────────
+  const dropzone   = document.getElementById('dropzone');
+  const fileInput  = document.getElementById('file-input');
+  const btnUpload  = document.getElementById('btn-upload');
+  const btnRefresh = document.getElementById('btn-refresh');
+  const previewBox = document.getElementById('preview-box');
+  const previewHead= document.getElementById('preview-head');
+  const previewBody= document.getElementById('preview-body');
+  const previewMore= document.getElementById('preview-more');
+  const toast      = document.getElementById('toast');
+  const toastIcon  = document.getElementById('toast-icon');
+  const toastTitle = document.getElementById('toast-title');
+  const toastDetail= document.getElementById('toast-detail');
+  const pillInsert = document.getElementById('pill-insert');
+  const pillIgnore = document.getElementById('pill-ignore');
+  const seriesCount= document.getElementById('series-count');
+  const seriesEmpty= document.getElementById('series-empty');
+  const seriesTable= document.getElementById('series-table');
+  const seriesBody = document.getElementById('series-body');
+
+  let selectedFile = null;
+
+  // ── Drag & drop ───────────────────────────────────────────────────────────
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  // ── Gestion fichier ───────────────────────────────────────────────────────
+  function handleFile(file) {
+    selectedFile = file;
+    dropzone.classList.add('has-file');
+    dropzone.querySelector('.drop-title').textContent = file.name;
+    dropzone.querySelector('.drop-sub').textContent =
+      `${(file.size / 1024).toFixed(1)} Ko · CSV`;
+    btnUpload.disabled = false;
+    hideToast();
+    [pillInsert, pillIgnore].forEach(p => p.classList.remove('visible'));
+
+    // Aperçu CSV
+    const reader = new FileReader();
+    reader.onload = e => {
+      const lines = e.target.result.split('\n').filter(l => l.trim());
+      if (lines.length < 2) return;
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows = lines.slice(1, 6); // max 5 lignes
+      const more = lines.length - 1 - rows.length;
+
+      previewHead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+      previewBody.innerHTML = rows.map(r =>
+        '<tr>' + r.split(',').map(c => `<td>${c.trim()}</td>`).join('') + '</tr>'
+      ).join('');
+      previewMore.textContent = more > 0 ? `+ ${more} ligne${more > 1 ? 's' : ''} non affichée${more > 1 ? 's' : ''}` : '';
+      previewBox.classList.add('visible');
+    };
+    reader.readAsText(file);
+  }
+
+  // ── Upload ────────────────────────────────────────────────────────────────
+  btnUpload.addEventListener('click', async () => {
+    if (!selectedFile) return;
+    btnUpload.classList.add('loading');
+    btnUpload.disabled = true;
+    hideToast();
+
+    const form = new FormData();
+    form.append('file', selectedFile);
+
+    try {
+      const res = await fetch(`${API}/upload/csv`, { method: 'POST', body: form });
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast('success',
+          `${data.lignes_inserees} ligne${data.lignes_inserees > 1 ? 's' : ''} insérée${data.lignes_inserees > 1 ? 's' : ''}`,
+          data.message || ''
+        );
+        pillInsert.textContent = `✓ ${data.lignes_inserees} insérée${data.lignes_inserees > 1 ? 's' : ''}`;
+        pillInsert.classList.add('visible');
+        if (data.lignes_invalides_ignorees > 0) {
+          pillIgnore.textContent = `⚠ ${data.lignes_invalides_ignorees} ignorée${data.lignes_invalides_ignorees > 1 ? 's' : ''}`;
+          pillIgnore.classList.add('visible');
+        }
+        loadSeries();
+      } else {
+        const msg = data.erreur || 'Erreur inconnue';
+        const detail = data.manquantes ? `Colonnes manquantes : ${data.manquantes.join(', ')}` : (data.detail || '');
+        showToast('error', msg, detail);
+      }
+    } catch (err) {
+      showToast('error', 'Impossible de joindre le serveur', `${API} — vérifiez que Flask tourne sur le port 5004.`);
+    }
+
+    btnUpload.classList.remove('loading');
+    btnUpload.disabled = false;
+  });
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(type, title, detail) {
+    toast.className = `visible ${type}`;
+    toastTitle.textContent = title;
+    toastDetail.textContent = detail;
+    if (type === 'success') {
+      toastIcon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+    } else {
+      toastIcon.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+    }
+  }
+  function hideToast() {
+    toast.className = '';
+  }
+
+  // ── Chargement des séries ─────────────────────────────────────────────────
+  async function loadSeries() {
+    seriesCount.textContent = '…';
+    try {
+      const res  = await fetch(`${API}/upload/series`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.detail || 'Erreur');
+
+      const series = data.series || [];
+      seriesCount.textContent = `${data.total} série${data.total > 1 ? 's' : ''}`;
+
+      if (series.length === 0) {
+        seriesEmpty.style.display = '';
+        seriesTable.style.display = 'none';
+        return;
+      }
+
+      seriesBody.innerHTML = series.map(s => `
+        <tr>
+          <td>
+            <div class="serie-name">${s.serie}</div>
+          </td>
+          <td><span class="n-points">${s.n_points}</span></td>
+          <td><span class="date-range">${s.debut}<br>${s.fin}</span></td>
+        </tr>
+      `).join('');
+
+      seriesEmpty.style.display = 'none';
+      seriesTable.style.display = 'table';
+
+    } catch (err) {
+      seriesCount.textContent = 'Erreur';
+      seriesEmpty.innerHTML = `
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="color:var(--red)">Serveur inaccessible</p>
+        <p style="margin-top:.3rem;font-size:.78rem;">Vérifiez que Flask tourne sur <code style="font-family:'DM Mono',monospace">${API}</code></p>
+      `;
+      seriesEmpty.style.display = '';
+      seriesTable.style.display = 'none';
+    }
+  }
+
+  btnRefresh.addEventListener('click', loadSeries);
+
+  // Chargement initial
+  loadSeries();
+</script>
+</body>
+</html>
