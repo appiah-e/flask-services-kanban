@@ -7,49 +7,52 @@
 
 <body>
 
-<h2>Test API Flask</h2>
+<h2>Tests de l'API Flask (statistiques)</h2>
 
-<!-- ===================== TEST DESCRIBE ===================== -->
+<!-- ===================== BOUTONS DE TEST ===================== -->
+<!-- Chaque bouton appelle une fonction JavaScript différente -->
+
 <button onclick="testDescribe()">Tester describe</button>
-
-<!-- ===================== TEST CORRELATION ===================== -->
 <button onclick="testCorrelation()">Tester correlation</button>
-
-<!-- ===================== TEST NORMALITE ===================== -->
 <button onclick="testNormalite()">Tester normalité</button>
+<button onclick="testStudent()">Tester t-Student</button>
 
-<!-- Zone d'affichage des résultats -->
+<!-- Zone où on affiche le résultat JSON -->
 <pre id="result">Résultat ici...</pre>
 
 <script>
 
-// ===================== DESCRIBE =====================
+/* =========================================================
+   FONCTION : TEST /DESCRIBE
+   - Envoie une liste de nombres
+   - Reçoit des statistiques (moyenne, médiane, etc.)
+========================================================= */
 function testDescribe() {
 
     fetch("http://127.0.0.1:5002/stats/describe", {
-        method: "POST",
+        method: "POST", // on envoie des données au serveur
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json" // format JSON
         },
         body: JSON.stringify({
-            data: [1, 2, 3, 4, 5]
+            data: [1, 2, 3, 4, 5] // données envoyées
         })
     })
 
-    .then(response => response.json())
+    .then(response => response.json()) // conversion réponse JSON
     .then(data => {
+        // affichage du résultat dans la page
         document.getElementById("result").innerText =
             JSON.stringify(data, null, 2);
-    })
-
-    .catch(error => {
-        document.getElementById("result").innerText =
-            "Erreur describe : " + error;
     });
 }
 
 
-// ===================== CORRELATION =====================
+/* =========================================================
+   FONCTION : TEST CORRELATION
+   - Compare deux séries de données (x et y)
+   - Calcule la corrélation de Pearson
+========================================================= */
 function testCorrelation() {
 
     fetch("http://127.0.0.1:5002/stats/correlation", {
@@ -67,16 +70,15 @@ function testCorrelation() {
     .then(data => {
         document.getElementById("result").innerText =
             JSON.stringify(data, null, 2);
-    })
-
-    .catch(error => {
-        document.getElementById("result").innerText =
-            "Erreur correlation : " + error;
     });
 }
 
 
-// ===================== NORMALITE =====================
+/* =========================================================
+   FONCTION : TEST NORMALITE
+   - Vérifie si les données suivent une loi normale
+   - Test de Shapiro-Wilk
+========================================================= */
 function testNormalite() {
 
     fetch("http://127.0.0.1:5002/stats/test_normalite", {
@@ -93,11 +95,32 @@ function testNormalite() {
     .then(data => {
         document.getElementById("result").innerText =
             JSON.stringify(data, null, 2);
+    });
+}
+
+
+/* =========================================================
+   FONCTION : TEST T-STUDENT
+   - Compare deux groupes de données
+   - Vérifie s'ils sont significativement différents
+========================================================= */
+function testStudent() {
+
+    fetch("http://127.0.0.1:5002/stats/test_student", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            groupe1: [1, 2, 3, 4, 5],
+            groupe2: [2, 3, 4, 5, 6]
+        })
     })
 
-    .catch(error => {
+    .then(response => response.json())
+    .then(data => {
         document.getElementById("result").innerText =
-            "Erreur normalité : " + error;
+            JSON.stringify(data, null, 2);
     });
 }
 
