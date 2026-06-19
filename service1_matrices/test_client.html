@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Web - Service 1</title>
+</head>
+<body>
+
+    <h1>Test du Service 1 (Matrices)</h1>
+
+    <div class="boutons">
+        <button onclick="envoyerRequete('/add')">Test Addition</button>
+        <button onclick="envoyerRequete('/multiply')">Test Multiplication</button>
+        <button onclick="envoyerRequete('/transpose')">Test Transposée</button>
+        <button onclick="envoyerRequete('/determinant')">Test Déterminant</button>
+        <button onclick="envoyerRequete('/inverse')">Test Inverse</button>
+    </div>
+
+    <h2>Résultat :</h2>
+    <div id="ecran-resultat">Cliquez sur un bouton pour lancer un test...</div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5001/matrices';
+
+        // Nos matrices de test par défaut
+        const donneesTest = {
+            "A": [[1, 2], [3, 4]],
+            "B": [[5, 6], [7, 8]]
+        };
+
+        async function envoyerRequete(route) {
+            const ecran = document.getElementById('ecran-resultat');
+            ecran.textContent = "⏳ Chargement en cours...";
+
+            try {
+                // Equivalent de requests.post() en JavaScript
+                const reponse = await fetch(BASE_URL + route, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(donneesTest)
+                });
+
+                const data = await reponse.json();
+
+                // Affichage du résultat
+                ecran.innerHTML = `✅ Statut HTTP : ${reponse.status}<br><br>📦 Réponse du serveur :<br><pre>${JSON.stringify(data, null, 4)}</pre>`;
+            } catch (erreur) {
+                ecran.textContent = `❌ Erreur de connexion : ${erreur.message}\n\nLe serveur Flask est-il bien allumé ?`;
+            }
+        }
+    </script>
+</body>
+</html>

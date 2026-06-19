@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import numpy as np
 app =( Flask(__name__))
+CORS(app)
 
 def parse_matrix(data, key):
     """Convertit une liste de listes en tableau NumPy."""
@@ -8,9 +10,6 @@ def parse_matrix(data, key):
         return np.array(data[key], dtype=float)
     except (KeyError, ValueError) as e:
         raise ValueError(f"Matrice '{key}' invalide : {e}")
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
 
 @app.route('/matrices/add', methods=['POST'])
 def add_matrices():
@@ -79,3 +78,6 @@ def inverse_matrix():
         return jsonify({'operation': 'inverse', 'resultat': result})
     except (ValueError, TypeError) as e:
         return jsonify({'erreur': str(e)}), 400
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
