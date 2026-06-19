@@ -7,21 +7,25 @@
 
 <body>
 
-<h2>Test de l'API Flask</h2>
+<h2>Test API Flask</h2>
 
-<!-- ===================== TEST /describe ===================== -->
+<!-- ===================== TEST DESCRIBE ===================== -->
 <button onclick="testDescribe()">Tester describe</button>
 
-<!-- ===================== TEST /correlation ===================== -->
+<!-- ===================== TEST CORRELATION ===================== -->
 <button onclick="testCorrelation()">Tester correlation</button>
 
+<!-- ===================== TEST NORMALITE ===================== -->
+<button onclick="testNormalite()">Tester normalité</button>
+
+<!-- Zone d'affichage des résultats -->
 <pre id="result">Résultat ici...</pre>
 
 <script>
 
+// ===================== DESCRIBE =====================
 function testDescribe() {
 
-    // Test de la route /stats/describe
     fetch("http://127.0.0.1:5002/stats/describe", {
         method: "POST",
         headers: {
@@ -45,10 +49,9 @@ function testDescribe() {
 }
 
 
-// ===================== TEST CORRELATION =====================
+// ===================== CORRELATION =====================
 function testCorrelation() {
 
-    // Test de la route /stats/correlation
     fetch("http://127.0.0.1:5002/stats/correlation", {
         method: "POST",
         headers: {
@@ -69,6 +72,32 @@ function testCorrelation() {
     .catch(error => {
         document.getElementById("result").innerText =
             "Erreur correlation : " + error;
+    });
+}
+
+
+// ===================== NORMALITE =====================
+function testNormalite() {
+
+    fetch("http://127.0.0.1:5002/stats/test_normalite", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        })
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+    })
+
+    .catch(error => {
+        document.getElementById("result").innerText =
+            "Erreur normalité : " + error;
     });
 }
 
