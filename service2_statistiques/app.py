@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import numpy as np
 from flask_cors import CORS
+from scipy import stats
 
 # Création de l'application Flask
 app = Flask(__name__)
@@ -22,6 +23,7 @@ def validate_data(data, key='data'):
 
     return np.array(values, dtype=float)
 
+# =========================== Route /stat/describe ===========================
 
 @app.route('/stats/describe', methods=['GET', 'POST'])
 def describe():
@@ -53,6 +55,41 @@ def describe():
 
     except (ValueError, TypeError) as e:
         return jsonify({'erreur': str(e)}), 400
+
+# =========================== Route /stat/correlation ===========================
+
+@app.route('/stats/correlation', methods=['POST'])
+def correlation():
+    data = request.get_json()
+
+    try:
+        x = validate_data(data, 'x')
+        y = validate_data(data, 'y')
+
+        if len(x) != len(y):
+            return jsonify({'erreur': 'x et y doivent avoir la même longueur'}), 400
+
+        r, p_value = stats.pearsonr(x, y)
+
+        interpretation = (
+            'forte' if abs(r) > 0.7
+            else 'modérée' if abs(r) > 0.4
+            else 'faible'
+        )
+
+        return jsonify({
+            'operation': 'correlation_pearson',
+            'resultat': {
+                'r': round(r, 4),
+                'p_value': round(p_value, 6),
+                'interpretation': interpretation,
+                'significatif': bool(p_value < 0.05)
+            }
+        })
+
+    except (ValueError, TypeError) as e:
+        return jsonify({'erreur': str(e)}), 400
+
 
 
 # Lancement du serveur
